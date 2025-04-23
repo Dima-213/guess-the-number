@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Угадай число лопух - браузерная версия</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Угадай число лопух</h1>
+        
+        <div class="settings">
+            <div>
+                <label for="minRange">Минимальное число:</label>
+                <input type="number" id="minRange" value="1" min="1">
+            </div>
+            <div>
+                <label for="maxRange">Максимальное число:</label>
+                <input type="number" id="maxRange" value="100" min="2">
+            </div>
+            <div>
+                <label for="maxAttempts">Количество попыток:</label>
+                <select id="maxAttempts">
+                    <option value="5">5 (Сложный)</option>
+                    <option value="10" selected>10 (Средний)</option>
+                    <option value="20">20 (Легкий)</option>
+                </select>
+            </div>
+            <button id="startGame">Начать игру</button>
+        </div>
+        
+        <div class="game-area hidden">
+            <p id="gameInfo"></p>
+            <div class="guess-input">
+                <input type="number" id="userGuess" placeholder="Введите число">
+                <button id="submitGuess">Проверить</button>
+            </div>
+            <p id="attemptsInfo"></p>
+            <p id="hint"></p>
+            <button id="restartGame" class="hidden">Начать заново</button>
+        </div>
+        
+        <div id="gameResult" class="hidden"></div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

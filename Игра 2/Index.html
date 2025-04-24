@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Угадай число - Дуэль</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .game-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .game-area {
+            margin-top: 20px;
+        }
+        .player-section, .computer-section {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .active-turn {
+            border: 3px solid #3498db;
+            background-color: #eaf4fd;
+        }
+        input, button {
+            padding: 10px 15px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .guess-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .hint {
+            font-style: italic;
+            color: #e74c3c;
+            min-height: 24px;
+        }
+        #restartBtn {
+            background-color: #9b59b6;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Дуэль: Угадай число</h1>
+        <p>Игрок и компьютер угадывают числа по очереди!</p>
+        
+        <div class="game-area">
+            <div id="playerSection" class="player-section">
+                <h2>Твой ход</h2>
+                <p>Угадай число компьютера (1-100):</p>
+                <input type="number" id="playerGuess" min="1" max="100">
+                <button id="submitPlayerGuess">Проверить</button>
+                <div id="playerHint" class="hint"></div>
+            </div>
+            
+            <div id="computerSection" class="computer-section">
+                <h2>Ход компьютера</h2>
+                <p>Загадай число (1-100) и отвечай на вопросы:</p>
+                <div class="guess-display" id="computerGuessDisplay"></div>
+                <div class="button-group">
+                    <button id="lessBtn">Меньше</button>
+                    <button id="correctBtn">Угадал</button>
+                    <button id="greaterBtn">Больше</button>
+                </div>
+                <div id="computerAttempts"></div>
+            </div>
+            
+            <div id="gameResult"></div>
+            <button id="restartBtn" style="display:none;">Новая игра</button>
+        </div>
+    </div>
+
+    <script>
+        let playerSecretNumber;
+        let computerSecretNumber = Math.floor(Math.random() * 100) + 1;
+        let playerAttempts = 0;
+        let computerAttempts = 0;
+        let computerMin = 1;
+        let computerMax = 100;
+        let currentTurn = 'player';
+        let gameActive = true;
+
+        const playerSection = document.getElementById('playerSection');
+        const computerSection = document.getElementById('computerSection');
+        const playerGuessInput = document.getElementById('playerGuess');
+        const submitPlayerGuess = document.getElementById('submitPlayerGuess');
+        const playerHint = document.getElementById('playerHint');
+        const computerGuessDisplay = document.getElementById('computerGuessDisplay');
+        const lessBtn = document.getElementById('lessBtn');
+        const correctBtn = document.getElementById('correctBtn');
+        const greaterBtn = document.getElementById('greaterBtn');
+        const computerAttemptsDisplay = document.getElementById('computerAttempts');
+        const gameResult = document.getElementById('gameResult');
+        const restartBtn = document.getElementById('restartBtn');
+
+        function initGame() {
+            computerSecretNumber = Math.floor(Math.random() * 100) + 1;
+            
+            playerSecretNumber = null;
+            while (!playerSecretNumber || playerSecretNumber < 1 || playerSecretNumber > 100) {
+                playerSecretNumber = parseInt(prompt("Загадай число от 1 до 100 для компьютера:"));
+            }
+            
+            playerAttempts = 0;
+            computerAttempts = 0;
+            computerMin = 1;
+            computerMax = 100;
+            gameActive = true;
+            currentTurn = 'player';
+            
+
+            playerHint.textContent = '';
+            computerGuessDisplay.textContent = '';
+            computerAttemptsDisplay.textContent = '';
+            gameResult.textContent = '';
+            restartBtn.style.display = 'none';
+            
+            updateTurn();
+        }
+
+        function updateTurn() {
+            if (currentTurn === 'player') {
+                playerSection.classList.add('active-turn');
+                computerSection.classList.remove('active-turn');
+                playerGuessInput.focus();
+            } else {
+                playerSection.classList.remove('active-turn');
+                computerSection.classList.add('active-turn');
+                makeComputerGuess();
+            }
+        }
+
+        submitPlayerGuess.addEventListener('click', () => {
+            if (!gameActive || currentTurn !== 'player') return;
+            
+            const guess = parseInt(playerGuessInput.value);
+            if (isNaN(guess)) {
+                playerHint.textContent = 'Введите число!';
+                return;
+            }
+            
+            playerAttempts++;
+            
+            if (guess === computerSecretNumber) {
+                playerHint.textContent = `Поздравляю! Ты угадал за ${playerAttempts} попыток!`;
+                endGame('player');
+            } else if (guess < computerSecretNumber) {
+                playerHint.textContent = 'Мое число больше!';
+                switchTurn();
+            } else {
+                playerHint.textContent = 'Мое число меньше!';
+                switchTurn();
+            }
+            
+            playerGuessInput.value = '';
+        });
+
+        function makeComputerGuess() {
+            if (!gameActive || currentTurn !== 'computer') return;
+            
+            const guess = Math.floor((computerMin + computerMax) / 2);
+            computerGuessDisplay.textContent = `Компьютер думает, что это ${guess}`;
+            computerAttemptsDisplay.textContent = `Попытка №${computerAttempts + 1}`;
+        }
+
+        lessBtn.addEventListener('click', () => handleComputerResponse('less'));
+        greaterBtn.addEventListener('click', () => handleComputerResponse('greater'));
+        correctBtn.addEventListener('click', () => handleComputerResponse('correct'));
+
+        function handleComputerResponse(response) {
+            if (!gameActive || currentTurn !== 'computer') return;
+            
+            computerAttempts++;
+            const currentGuess = Math.floor((computerMin + computerMax) / 2);
+            
+            switch(response) {
+                case 'less':
+                    computerMax = currentGuess - 1;
+                    break;
+                case 'greater':
+                    computerMin = currentGuess + 1;
+                    break;
+                case 'correct':
+                    if (currentGuess === playerSecretNumber) {
+                        computerAttemptsDisplay.textContent = `Компьютер угадал за ${computerAttempts} попыток!`;
+                        endGame('computer');
+                        return;
+                    } else {
+                        alert('Не обманывай! Компьютер не может угадать неправильное число!');
+                        return;
+                    }
+            }
+            
+            if (computerMin > computerMax) {
+                computerAttemptsDisplay.textContent = 'Компьютер сдаётся! Ты точно загадал число?';
+                endGame('draw');
+                return;
+            }
+            
+            switchTurn();
+        }
+
+        function switchTurn() {
+            currentTurn = currentTurn === 'player' ? 'computer' : 'player';
+            updateTurn();
+        }
+
+        function endGame(winner) {
+            gameActive = false;
+            
+            if (winner === 'player') {
+                gameResult.textContent = `Ты победил! Компьютер загадал ${computerSecretNumber}.`;
+                gameResult.style.color = '#27ae60';
+            } else if (winner === 'computer') {
+                gameResult.textContent = `Компьютер победил! Ты загадал ${playerSecretNumber}.`;
+                gameResult.style.color = '#e74c3c';
+            } else {
+                gameResult.textContent = 'Ничья!';
+            }
+            
+            restartBtn.style.display = 'inline-block';
+        }
+
+        restartBtn.addEventListener('click', initGame);
+
+        initGame();
+    </script>
+</body>
+</html>
